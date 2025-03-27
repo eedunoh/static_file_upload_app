@@ -1,7 +1,7 @@
 
-# Grants permissions to lambda to carryout actions on s3.
+# this role grants permissions to lambda to carryout actions on s3
 resource "aws_iam_role" "iam_for_lambda" {
-  name = "iam_for_lambda"
+  name = "iam_role_for_lambda"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -15,8 +15,8 @@ resource "aws_iam_role" "iam_for_lambda" {
 
 
 
-# Create a lambda:InvokeFunction
-# When using the AWS Management Console, AWS automatically adds the required Lambda:InvokeFunction permission behind the scenes. In terraform, we need to explicitly configure it
+# Create a lambda:InvokeFunction. This is important because S3 needs explicit permission to invoke Lambda.
+# When using the AWS Management Console, AWS automatically adds the required Lambda:InvokeFunction permission behind the scenes. In terraform, we need to explicitly configure it.
 resource "aws_lambda_permission" "allow_bucket" {
   statement_id  = "AllowExecutionFromS3Bucket"
   action        = "lambda:InvokeFunction"
@@ -27,12 +27,12 @@ resource "aws_lambda_permission" "allow_bucket" {
 
 
 
-# Policy to be attached to the role above.
-# Lambda can only LIST and PUT objects in s3_sensitive_object_bucket. It can only GET, LIST and DELETE objects in s3_normal_object_bucket
+# Policy to be attached to the lambda role above.
+# Lambda can only LIST and PUT objects in s3_sensitive_object_bucket. It can GET, LIST, GETObjectTagging, COPY and DELETE objects in s3_normal_object_bucket
 
 resource "aws_iam_policy" "s3_access" {
   name        = "s3_access"
-  description = "Allows EC2 instance to access s3 buckets - least privilege"
+  description = "Allows Lambda to access s3 buckets - least privilege"
   
   policy = jsonencode({
     Version = "2012-10-17",
@@ -43,6 +43,8 @@ resource "aws_iam_policy" "s3_access" {
 			"Action": [
 				"s3:GetObject",
 				"s3:ListBucket",
+        "s3:GetObjectTagging",
+        "s3:CopyObject",
         "s3:DeleteObject"
 				],
 			"Resource": [
@@ -66,7 +68,7 @@ resource "aws_iam_policy" "s3_access" {
 }
 
 
-# attching s3_access policy to the lambda iam role
+# attach s3_access policy to the lambda iam role
 resource "aws_iam_role_policy_attachment" "ec2_instance_policy_attachment" {
   role       = aws_iam_role.iam_for_lambda.name
   policy_arn = aws_iam_policy.s3_access.arn
@@ -78,7 +80,7 @@ resource "aws_iam_role_policy_attachment" "ec2_instance_policy_attachment" {
 
 
 
-# Grants permissions to the application in ec2 to access AWS services like SSM Parameter Store and s3
+# This role grants permissions to the application in ec2 to access AWS services like SSM Parameter Store and s3
 resource "aws_iam_role" "ec2_instance_role" {
   name = "EC2InstanceRole"
 
@@ -94,7 +96,7 @@ resource "aws_iam_role" "ec2_instance_role" {
 
 
 
-# Policy to be attached to the role above. 
+# Policy to be attached to the ec2 role above. 
 # The application only have acces to get Cognito properties from SSM and normal s3 bucket
 
 resource "aws_iam_policy" "ssm_read_access_and_s3_access" {
@@ -127,7 +129,7 @@ resource "aws_iam_policy" "ssm_read_access_and_s3_access" {
 }
 
 
-# attching ssssm_read_access_and_s3_accessm_read_access policy to the ec2 instance role
+# attach ssm_read_access_and_s3_access policy to the ec2 instance role
 resource "aws_iam_role_policy_attachment" "ec2_instance_policy_attachment" {
   role       = aws_iam_role.ec2_instance_role.name
   policy_arn = aws_iam_policy.ssm_read_access_and_s3_access.arn
@@ -135,12 +137,11 @@ resource "aws_iam_role_policy_attachment" "ec2_instance_policy_attachment" {
 
 
 
-# Creating an iam instance profile for the ec2 instance role. This will be attched in instance profile section of the launch template.
+# Create an iam instance profile for the ec2 instance role. This will be attched to the instance in the launch template.
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name = "EC2InstanceProfile"
   role = aws_iam_role.ec2_instance_role.name
 }
-
 
 
 
