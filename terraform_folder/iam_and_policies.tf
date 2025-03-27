@@ -69,7 +69,7 @@ resource "aws_iam_policy" "s3_access" {
 
 
 # attach s3_access policy to the lambda iam role
-resource "aws_iam_role_policy_attachment" "ec2_instance_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
   role       = aws_iam_role.iam_for_lambda.name
   policy_arn = aws_iam_policy.s3_access.arn
 }
@@ -142,7 +142,6 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name = "EC2InstanceProfile"
   role = aws_iam_role.ec2_instance_role.name
 }
-
 
 
 

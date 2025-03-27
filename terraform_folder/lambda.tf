@@ -8,5 +8,5 @@ resource "aws_lambda_function" "static_upload_lambda_function" {
 
   runtime = "python3.9"                             # This defines the programming language and environment AWS should use to run your function.
 
-  handler = lambda_function.lambda_handler          # Specifies the function within your code that AWS Lambda should execute. It takes the form; "filename.function_name"
+  handler = "lambda_function.lambda_handler"          # Specifies the function within your code that AWS Lambda should execute. It takes the form; "filename.function_name"
 }
