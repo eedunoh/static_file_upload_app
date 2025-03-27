@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - File Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 20px;
+        }
+        .container {
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.2);
+            margin: auto;
+        }
+        h1 {
+            color: #444;
+        }
+        .input-group {
+            margin: 15px 0;
+            text-align: left;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+        }
+        select, input[type="file"], button {
+            padding: 10px;
+            width: 100%;
+            margin-top: 5px;
+        }
+        button {
+            background: #008CBA;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #005f73;
+        }
+        .logout {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #f44336;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .logout:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Welcome, {{ username }}</h1>
+        <h2>Upload a File</h2>
+
+        <div class="input-group">
+            <label for="file">Select File:</label>
+            <input type="file" id="file">
+        </div>
+
+        <div class="input-group">
+            <label for="fileTag">Select Sensitivity:</label>
+            <select id="fileTag">
+                <option value="non-sensitive">Non-Sensitive</option>
+                <option value="sensitive">Sensitive</option>
+            </select>
+        </div>
+
+        <button onclick="uploadFile()">Upload</button>
+
+        <!-- Logout Link -->
+        <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+    </div>
+
+    <script>
+        function uploadFile() {
+            let fileInput = document.getElementById("file");
+            let fileTag = document.getElementById("fileTag").value;
+            let file = fileInput.files[0];
+
+            if (!file) {
+                alert("❌ Please select a file to upload.");
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append("file", file);
+            formData.append("tag", fileTag);
+
+            fetch("/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || "✅ File uploaded successfully!");
+            })
+            .catch(error => {
+                alert("⚠️ Error uploading: " + error);
+            });
+        }
+    </script>
+
+</body>
+</html>

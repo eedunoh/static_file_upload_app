@@ -1,0 +1,143 @@
+pipeline {
+    agent any
+
+    parameters {
+        booleanParam(name: 'PLAN_TERRAFORM', defaultValue: false, description: 'Check to plan Terraform changes')
+        booleanParam(name: 'APPLY_TERRAFORM', defaultValue: false, description: 'Check to apply Terraform changes')
+        booleanParam(name: 'DESTROY_TERRAFORM', defaultValue: false, description: 'Check to destroy Terraform infrastructure')
+    }
+
+    environment {
+        IMAGE_NAME = 'jackedu/static_file_upload_app_repo'
+        IMAGE_TAG = 'latest'
+        TERRAFORM_DIR = 'terraform_folder'
+        TF_PLAN_FILE = 'tfplan.binary'
+    }
+
+    stages {
+
+        stage('Clone Repository') {
+            steps {
+                echo '📥 Cleaning workspace and cloning repository...'
+                deleteDir()
+                git branch: 'main', url: 'https://github.com/eedunoh/static_file_upload_app.git'
+                sh 'ls -lart'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo "🐳 Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
+                dir('app_folder') {
+                    script {
+                        dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                echo "🚀 Pushing Docker image to Docker Hub..."
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'my_docker_hub_secrets') {
+                        dockerImage.push("${IMAGE_TAG}")
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                echo "⚙️ Initializing Terraform..."
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'my_aws_credentials'
+                ]]) {
+                    dir("${TERRAFORM_DIR}") {
+                        sh '''
+                            echo "================= Terraform Init =================="
+                            terraform init
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            when {
+                expression { params.PLAN_TERRAFORM }
+            }
+            steps {
+                echo "🔍 Running Terraform Plan..."
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'my_aws_credentials'
+                ]]) {
+                    dir("${TERRAFORM_DIR}") {
+                        sh """
+                            echo "================= Terraform Plan =================="
+                            terraform plan -out=${TF_PLAN_FILE}
+                            terraform show -no-color ${TF_PLAN_FILE} > tfplan.txt
+                        """
+                    }
+                    archiveArtifacts artifacts: "${TERRAFORM_DIR}/${TF_PLAN_FILE}, ${TERRAFORM_DIR}/tfplan.txt", onlyIfSuccessful: true
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            when {
+                expression { params.APPLY_TERRAFORM }
+            }
+            steps {
+                echo "🚀 Applying Terraform Plan..."
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'my_aws_credentials'
+                ]]) {
+                    dir("${TERRAFORM_DIR}") {
+                        sh """
+                            echo "================= Terraform Apply =================="
+                            terraform apply -auto-approve ${TF_PLAN_FILE}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Destroy') {
+            when {
+                expression { params.DESTROY_TERRAFORM }
+            }
+            steps {
+                echo "💣 Destroying Terraform Infrastructure..."
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'my_aws_credentials'
+                ]]) {
+                    dir("${TERRAFORM_DIR}") {
+                        sh """
+                            echo "================= Terraform Destroy =================="
+                            terraform destroy -auto-approve
+                        """
+                    }
+                }
+            }
+        }
+
+    }
+
+    post {
+        success {
+            echo '✅ Pipeline completed successfully!'
+        }
+        failure {
+            echo '❌ Pipeline failed!'
+        }
+        always {
+            echo '🔔 Pipeline finished running.'
+            cleanWs()  // Optional cleanup of workspace after each run
+        }
+    }
+}
