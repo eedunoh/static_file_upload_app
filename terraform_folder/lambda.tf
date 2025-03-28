@@ -8,7 +8,7 @@ resource "aws_lambda_function" "static_upload_lambda_function" {
 
   runtime = "python3.9"                             # This defines the programming language and environment AWS should use to run your function.
 
-  handler = "lambda_function.lambda_handler"          # Specifies the function within your code that AWS Lambda should execute. It takes the form; "filename.function_name"
+  handler = "lambda_function.lambda_handler"        # Specifies the function within your code that AWS Lambda should execute. It takes the form; "filename.function_name"
 }
 
 
@@ -19,7 +19,7 @@ resource "aws_lambda_function" "static_upload_lambda_function" {
 resource "aws_lambda_permission" "allow_bucket" {
   statement_id  = "AllowExecutionFromS3Bucket"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.static_upload_lambda_function.arn
+  function_name = aws_lambda_function.static_upload_lambda_function.arn       # using function arn is best practice and works better than using function name. It ensures that Terraform dynamically links the correct function.
   principal     = "s3.amazonaws.com"
   source_arn    = aws_s3_bucket.s3_normal_objects.arn     # This is the s3 bucket (normal_object_bucket) allowed to invoke/ trigger lambda
 }

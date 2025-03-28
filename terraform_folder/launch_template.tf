@@ -11,17 +11,13 @@ resource "aws_launch_template" "static_file_app_lt" {
 
     network_interfaces {
         associate_public_ip_address = false  # we do not need a public IP since the ec2 will be in the private subnet
-        
+
         security_groups = [aws_security_group.ec2_sg.id]
     }
 
     # IAM instance profile (needed for app running on ec2)
     iam_instance_profile {
       name = aws_iam_instance_profile.ec2_instance_profile.name
-    }
-
-    placement {
-      availability_zone = "eu-north-1a"
     }
 
     credit_specification {

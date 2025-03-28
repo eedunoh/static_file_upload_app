@@ -109,6 +109,7 @@ resource "aws_internet_gateway" "igw" {
 
 
 # NAT gateway1 and its elastic IP
+
 resource "aws_eip" "nat_eip1" {
   domain = "vpc"
 }
@@ -128,6 +129,7 @@ resource "aws_nat_gateway" "nat_gw1" {
 
 
 # NAT gateway2 and its elastic IP
+
 resource "aws_eip" "nat_eip2" {
   domain = "vpc"
 }
@@ -163,7 +165,8 @@ resource "aws_route_table" "public_route_table" {
 
 
 
-# Create two route tables for the private subnet and add the one nat gateway to each of them
+# Create two route tables for the private subnet and to each one, add a nat gateway.
+
 resource "aws_route_table" "private_route_table1" {
   vpc_id = aws_vpc.main.id
 
@@ -193,7 +196,6 @@ resource "aws_route_table" "private_route_table2" {
   }
 
 }
-
 
 
 

@@ -1,5 +1,19 @@
 
+
+# Something to note when defining policies;   "Effect": "Allow"  OR  Effect = "Allow" can be used. 
+
+# They can be used interchangably
+
+# JSON uses colons (:) and double quotes ("") 
+# WHILE 
+# Terraform HCL uses equals signs (=) without quotes for keys.
+
+
+
+
+
 # Create a role that grant permissions to lambda to carryout actions on s3
+
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_role_for_lambda"
 
@@ -13,14 +27,6 @@ resource "aws_iam_role" "iam_for_lambda" {
   })
 }
 
-
-# Some thing to not when defining policies;  "Effect": "Allow" OR Effect = "Allow" can be used. 
-
-# JSON uses colons (:) and double quotes ("") 
-# WHILE 
-# Terraform HCL uses equals signs (=) without quotes for keys.
-
-# They can be used interchangably
 
 
 # Policy to be attached to the lambda role above.

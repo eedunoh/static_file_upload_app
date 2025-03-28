@@ -40,6 +40,7 @@ resource "aws_autoscaling_policy" "cpu_tracking" {
 
 
 
+
 output "asg_group_arn" {
     value = aws_autoscaling_group.static_file_app_asg.arn
 }

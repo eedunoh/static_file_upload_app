@@ -15,8 +15,7 @@ sudo systemctl enable docker
 sudo usermod -aG docker ec2-user
 
 # Run the Docker container
-sudo docker run -d -p 80:80 --name blog_app_container jackedu/blog_app_repo:latest
-# sudo docker run -d -p 80:80 --name static_file_upload_app_container jackedu/static_file_upload_app_repo:latest
+sudo docker run -d -p 80:80 --name static_file_upload_app_container jackedu/static_file_upload_app_repo:latest
 
 # Confirm Docker version
 docker --version

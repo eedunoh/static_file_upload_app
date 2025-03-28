@@ -91,7 +91,7 @@ resource "aws_cognito_user_pool_client" "my_user_pool_client" {
   supported_identity_providers = ["COGNITO"]
 
   callback_urls = [
-    "https://d84l1y8p4kdic.cloudfront.net"
+    "https://d84l1y8p4kdic.cloudfront.net"          # A callback URL is the URL where users are redirected after successful email authentication with Cognito.
   ]
 }
 
@@ -100,9 +100,12 @@ resource "aws_cognito_user_pool_client" "my_user_pool_client" {
 # Configure Cognito Domain
 
 resource "aws_cognito_user_pool_domain" "my_domain" {
-  domain       = "myapp-static-file" # This will be the Cognito domain
+  domain       = "myapp-static-file"                              # The Cognito domain is needed for OAuth token exchange between the app and cognito. It works behind the scene.
   user_pool_id = aws_cognito_user_pool.my_user_pool.id
 }
+
+
+
 
 
 output "user_pool_id" {

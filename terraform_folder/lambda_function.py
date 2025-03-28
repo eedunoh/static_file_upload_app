@@ -51,6 +51,12 @@ def get_object_tags(bucket_name, object_key):
 # using the structure above, lambda can check if the event trigger is from s3
 
 def lambda_handler(event, context):
+
+    # event → Describes what triggered the Lambda function. It contains details of the event source, such as an API request, an S3 file upload, a DynamoDB stream update. This is the main input that the function processes.
+
+    # context → Provides runtime information about the Lambda execution. It includes metadata like the function’s remaining execution time, allocated memory, request ID, and invocation source. This helps manage execution and logging.
+    
+    
     # lambda checks if there is a record in the event, if the record is a list and the event being triggered is from s3
     record = event["Records"][0]
 
@@ -95,3 +101,8 @@ def lambda_handler(event, context):
             print(f"File {triggered_object} is not sensitive. No action taken.")
 
     return None
+
+
+
+
+# use this Bash code to convert this function.py file to function.zip file. This is because the lambda resource only accepts a .zip file;    zip lambda_function.zip lambda_function.py
