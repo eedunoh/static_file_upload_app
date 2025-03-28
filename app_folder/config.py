@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    APP_SECRET_KEY = "myblogapp3353"  # Fixed value
+    APP_SECRET_KEY = "mystaticapp3353"  # Fixed value
     COGNITO_REGION = "eu-north-1"  # Fixed value. Change this to your AWS region
 
     @staticmethod
@@ -25,12 +25,15 @@ class Config:
         cls.COGNITO_USER_POOL_ID = cls.get_ssm_parameter("cognito_user_pool_id")
         cls.COGNITO_CLIENT_ID = cls.get_ssm_parameter("cognito_client_id")
         cls.COGNITO_CLIENT_SECRET = cls.get_ssm_parameter("cognito_client_secret")
+        cls.S3_BUCKET = cls.get_ssm_parameter("normal_bucket_name")
 
         # Ensure critical environment variables are set
         if not cls.COGNITO_CLIENT_ID:
             raise ValueError("COGNITO_CLIENT_ID is missing! Check your environment variables or SSM Parameter Store.")
         if not cls.COGNITO_CLIENT_SECRET:
             raise ValueError("COGNITO_CLIENT_SECRET is missing! Check your environment variables or SSM Parameter Store.")
+        if not cls.S3_BUCKET:
+            raise ValueError("S3_BUCKET is missing! Check your environment variables or SSM Parameter Store.")
 
 # Explicitly initialize the class variables
 Config.initialize()

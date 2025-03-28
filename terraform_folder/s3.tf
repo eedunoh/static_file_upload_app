@@ -168,6 +168,11 @@ output "s3_normal_object_arn" {
 }
 
 
+output "s3_normal_bucket_name" {
+  value = aws_s3_bucket.s3_normal_objects.bucket
+}
+
+
 output "s3_sensitive_objects_arn" {
   value = aws_s3_bucket.s3_sensitive_objects.arn
 }

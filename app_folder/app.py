@@ -24,7 +24,7 @@ app.config["SESSION_TYPE"] = "filesystem"  # Persistent sessions with Flask-Sess
 Session(app)
 
 # AWS S3 Configuration
-S3_BUCKET = os.getenv("S3_BUCKET")
+S3_BUCKET = Config.S3_BUCKET
 s3_client = boto3.client("s3", region_name="eu-north-1")  # Ensure region is set for S3
 
 # Health check endpoint for ALB

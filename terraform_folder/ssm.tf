@@ -15,3 +15,10 @@ resource "aws_ssm_parameter" "cognito_client_secret" {
   type  = "String" # Secure value!
   value = aws_cognito_user_pool_client.my_user_pool_client.client_secret
 }
+
+
+resource "aws_ssm_parameter" "normal_bucket_name" {
+  name  = "normal_bucket_name"
+  type  = "String" # Secure value!
+  value = aws_s3_bucket.s3_normal_objects.bucket
+}
