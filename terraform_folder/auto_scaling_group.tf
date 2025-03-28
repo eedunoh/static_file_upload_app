@@ -1,7 +1,7 @@
 resource "aws_autoscaling_group" "static_file_app_asg" {
   name = "static_file_app_auto_scaling"
 
-  vpc_zone_identifier = [aws_subnet.private_subnet_1.id, aws_subnet.private_subnet_2.id]   # to make sure my auto scaling group (ec2) instances are in the private subnets.
+  vpc_zone_identifier = [aws_subnet.private_subnet_1.id, aws_subnet.private_subnet_2.id]   # This ensures my auto scaling group (ec2) instances are in the private subnets.
   
 
   desired_capacity   = 1
@@ -10,7 +10,7 @@ resource "aws_autoscaling_group" "static_file_app_asg" {
 
 
   launch_template {
-      id = aws_launch_template.static_file_app_lt.id    # We attach our launch template here using the launch template id
+      id = aws_launch_template.static_file_app_lt.id    # I attach my launch template here using the launch template id
       version = "$Latest"
   }
 
@@ -22,6 +22,7 @@ resource "aws_autoscaling_group" "static_file_app_asg" {
 }
 
 
+# Create an autoscaling policy using the 'TargetTrackingScaling' policy type
 resource "aws_autoscaling_policy" "cpu_tracking" {
   name = "cpu_tracking"
   autoscaling_group_name = aws_autoscaling_group.static_file_app_asg.name

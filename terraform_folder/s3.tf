@@ -5,7 +5,7 @@ resource "aws_s3_bucket" "s3_normal_objects" {
 }
 
 
-# Add a policy to the normal object bucket. This will allow lambda to carry out only GET, LIST and DELETE actions on the bucket
+# Add a bucket policy to the normal object bucket.
 resource "aws_s3_bucket_policy" "s3_normal_objects_bucket_policy" {
   bucket = aws_s3_bucket.s3_normal_objects.id
 
@@ -15,10 +15,14 @@ resource "aws_s3_bucket_policy" "s3_normal_objects_bucket_policy" {
 	"Statement": [
 		{
 			"Effect": "Allow",
-			"Principal" = "${aws_lambda_function.static_upload_lambda_function.arn}",
+			"Principal" = {
+					AWS = "${aws_iam_role.iam_for_lambda.arn}"  # This will allow lambda IAM role to carry out only GET, LIST, GETObjectTagging, COPY and DELETE actions on the bucket
+				},
 			"Action": [
 				"s3:GetObject",
 				"s3:ListBucket",
+				"s3:GetObjectTagging",
+				"s3:CopyObject",
 				"s3:DeleteObject"
 			],
 			"Resource": [
@@ -30,24 +34,16 @@ resource "aws_s3_bucket_policy" "s3_normal_objects_bucket_policy" {
 		{
 			"Effect": "Allow",
 			"Principal" = {
-                AWS = "${aws_iam_role.ec2_instance_role.arn}"   # Allow only EC2 IAM role. We cant use ec2 instance profile name (like we did when attaching iam role to ec2 launch template) here because its not recognised
-            },
+                	AWS = "${aws_iam_role.ec2_instance_role.arn}"   # Allow EC2 IAM role to carry out only PUT action on the bucket. We cant use ec2 instance profile name here (like we did when attaching iam role to ec2 launch template) because its not recognised.
+            	},
 			"Action": [
-				"s3:GetObject",
-				"s3:ListBucket",
-				"s3:PutObject",
-                "s3:DeleteObject"
+				"s3:PutObject"
 			],
 
 			"Resource": [
 				"${aws_s3_bucket.s3_normal_objects.arn}",
 				"${aws_s3_bucket.s3_normal_objects.arn}/*"
 			]
-            Condition = {
-            StringEquals = {
-                "aws:SourceVpce" = "${aws_vpc_endpoint.private_subnet_vpc_endpoint.id}"   # Dynamically insert VPC Endpoint ID
-                }
-            }
 		}
 	  ]
     }
@@ -61,10 +57,10 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
   lambda_function {
     lambda_function_arn = aws_lambda_function.static_upload_lambda_function.arn
-    events              = ["s3:ObjectCreated:Put"]
+    events              = ["s3:ObjectCreated:Put"]      # Lambda is triggered when a 'PutObject' event is created
   }
 
-  depends_on = [aws_lambda_permission.allow_bucket]
+  depends_on = [aws_lambda_permission.allow_bucket]     # * * * ? ? ?
 }
 
 
@@ -80,7 +76,7 @@ resource "aws_s3_bucket" "s3_sensitive_objects" {
 }
 
 
-# Add a policy to the sensitive object bucket. This will allow lambda to carry out only PUT and LIST actions on the bucket
+# Add a bucket policy to the sensitive object bucket. 
 resource "aws_s3_bucket_policy" "s3_sensitive_objects_bucket_policy" {
   bucket = aws_s3_bucket.s3_sensitive_objects.id
 
@@ -90,10 +86,12 @@ resource "aws_s3_bucket_policy" "s3_sensitive_objects_bucket_policy" {
 	"Statement": [
 		{
 			"Effect": "Allow",
-			"Principal" = "${aws_lambda_function.static_upload_lambda_function.arn}",
+			"Principal" = {
+					AWS = "${aws_iam_role.iam_for_lambda.arn}"  # This will allow lambda to carry out only PUT and LIST actions on the bucket
+				},
 			"Action": [
 				"s3:PutObject",
-				"s3:ListBucket",
+				"s3:ListBucket"
 			],
 			"Resource": [
 				"${aws_s3_bucket.s3_sensitive_objects.arn}",

@@ -11,6 +11,7 @@ resource "aws_launch_template" "static_file_app_lt" {
 
     network_interfaces {
         associate_public_ip_address = false  # we do not need a public IP since the ec2 will be in the private subnet
+        
         security_groups = [aws_security_group.ec2_sg.id]
     }
 

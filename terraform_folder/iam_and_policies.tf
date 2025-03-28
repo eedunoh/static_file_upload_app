@@ -1,5 +1,5 @@
 
-# this role grants permissions to lambda to carryout actions on s3
+# Create a role that grant permissions to lambda to carryout actions on s3
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_role_for_lambda"
 
@@ -14,17 +14,13 @@ resource "aws_iam_role" "iam_for_lambda" {
 }
 
 
+# Some thing to not when defining policies;  "Effect": "Allow" OR Effect = "Allow" can be used. 
 
-# Create a lambda:InvokeFunction. This is important because S3 needs explicit permission to invoke Lambda.
-# When using the AWS Management Console, AWS automatically adds the required Lambda:InvokeFunction permission behind the scenes. In terraform, we need to explicitly configure it.
-resource "aws_lambda_permission" "allow_bucket" {
-  statement_id  = "AllowExecutionFromS3Bucket"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.static_upload_lambda_function.arn
-  principal     = "s3.amazonaws.com"
-  source_arn    = aws_s3_bucket.s3_normal_objects.arn
-}
+# JSON uses colons (:) and double quotes ("") 
+# WHILE 
+# Terraform HCL uses equals signs (=) without quotes for keys.
 
+# They can be used interchangably
 
 
 # Policy to be attached to the lambda role above.
@@ -38,7 +34,6 @@ resource "aws_iam_policy" "s3_access" {
     Version = "2012-10-17",
     Statement = [
       {
-			"Sid": "VisualEditor0",
 			"Effect": "Allow",
 			"Action": [
 				"s3:GetObject",
@@ -53,7 +48,6 @@ resource "aws_iam_policy" "s3_access" {
 		},
 
       {
-			"Sid": "VisualEditor0",
 			"Effect": "Allow",
 			"Action": [
 				"s3:PutObject",
@@ -97,7 +91,7 @@ resource "aws_iam_role" "ec2_instance_role" {
 
 
 # Policy to be attached to the ec2 role above. 
-# The application only have acces to get Cognito properties from SSM and normal s3 bucket
+# The application (hosted on ec2) only have acces to get Cognito properties from SSM and can only PUT objects in s3_normal_object_bucket
 
 resource "aws_iam_policy" "ssm_read_access_and_s3_access" {
   name        = "ssm_read_access_and_s3_access"
@@ -108,22 +102,23 @@ resource "aws_iam_policy" "ssm_read_access_and_s3_access" {
     Statement = [
       {
       Effect   = "Allow",
-      Action   = ["ssm:GetParameter", "ssm:GetParameters", "ssm:GetParameterHistory"],
+      Action   = [
+        "ssm:GetParameter", 
+        "ssm:GetParameters", 
+        "ssm:GetParameterHistory"
+      ],
       Resource = "*"
     },
 
-      {
-			"Sid": "VisualEditor0",
-			"Effect": "Allow",
-			"Action": [
-				"s3:PutObject",
-				"s3:GetObject",
-				"s3:ListBucket",
-				],
-			"Resource": [
-				"${aws_s3_bucket.s3_normal_objects.arn}/*"
-			]
-		}
+    {
+    "Effect": "Allow",
+    "Action": [
+      "s3:PutObject"
+      ],
+    "Resource": [
+      "${aws_s3_bucket.s3_normal_objects.arn}/*"
+    ]
+  }
     ]
   })
 }
@@ -142,6 +137,7 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name = "EC2InstanceProfile"
   role = aws_iam_role.ec2_instance_role.name
 }
+
 
 
 
