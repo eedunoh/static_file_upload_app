@@ -30,7 +30,9 @@ resource "aws_iam_role" "iam_for_lambda" {
 
 
 # Policy to be attached to the lambda role above.
-# Lambda can only LIST and PUT objects in s3_sensitive_object_bucket. It can GET, LIST, GETObjectTagging, COPY and DELETE objects in s3_normal_object_bucket
+# Lambda can only LIST and PUT objects in s3_sensitive_object_bucket.  
+# It can GET, LIST, GETObjectTagging and DELETE objects in s3_normal_object_bucket. 
+# It's also important to add a policy to enable lambda use KMS propoerties on sensitive_objects_bucket. -- This is very important and can cause your lambda fucntion to stop working if not configured properly
 
 resource "aws_iam_policy" "s3_access" {
   name        = "s3_access"
@@ -45,10 +47,10 @@ resource "aws_iam_policy" "s3_access" {
 				"s3:GetObject",
 				"s3:ListBucket",
         "s3:GetObjectTagging",
-        "s3:CopyObject",
         "s3:DeleteObject"
 				],
 			"Resource": [
+        "${aws_s3_bucket.s3_normal_objects.arn}",
 				"${aws_s3_bucket.s3_normal_objects.arn}/*"
 			]
 		},
@@ -58,9 +60,13 @@ resource "aws_iam_policy" "s3_access" {
 			"Action": [
 				"s3:PutObject",
 				"s3:ListBucket",
+        "kms:Decrypt",               # This is also very important.  It allows the Lambda function to decrypt objects encrypted with a KMS-managed key. If these are absent, lambda wont be able to PUT sensitive files in the sensitive_objects_bucket
+				"kms:GenerateDataKey"        # This is also very important. It allows the function to generate a data encryption key using a KMS key.
 				],
 			"Resource": [
-				"${aws_s3_bucket.s3_sensitive_objects.arn}/*"
+        "${aws_s3_bucket.s3_sensitive_objects.arn}",
+				"${aws_s3_bucket.s3_sensitive_objects.arn}/*",
+        "${aws_kms_key.s3_sensitive_key.arn}"
 			]
 		}
     ]
@@ -97,7 +103,7 @@ resource "aws_iam_role" "ec2_instance_role" {
 
 
 # Policy to be attached to the ec2 role above. 
-# The application (hosted on ec2) only have acces to get Cognito properties from SSM and can only PUT objects in s3_normal_object_bucket
+# The application (hosted on ec2) only have acces to get Cognito properties from SSM and can only carryout PUT actions in s3_normal_object_bucket
 
 resource "aws_iam_policy" "ssm_read_access_and_s3_access" {
   name        = "ssm_read_access_and_s3_access"
@@ -119,9 +125,11 @@ resource "aws_iam_policy" "ssm_read_access_and_s3_access" {
     {
     "Effect": "Allow",
     "Action": [
-      "s3:PutObject"
+      "s3:PutObject",
+      "s3:PutObjectTagging"
       ],
     "Resource": [
+      "${aws_s3_bucket.s3_normal_objects.arn}",
       "${aws_s3_bucket.s3_normal_objects.arn}/*"
     ]
   }

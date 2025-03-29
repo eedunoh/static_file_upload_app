@@ -56,10 +56,11 @@ resource "aws_s3_bucket_policy" "s3_normal_objects_bucket_policy" {
 		{
 			"Effect": "Allow",
 			"Principal": {
-                	AWS = "${aws_iam_role.ec2_instance_role.arn}"   # Allow EC2 IAM role to carry out only PUT action on the bucket. We cant use ec2 instance profile name here (like we did when attaching iam role to ec2 launch template) because its not recognised.
+                	AWS = "${aws_iam_role.ec2_instance_role.arn}"   # Allow EC2 IAM role to only carry out PUT actions on the bucket. We cant use ec2 instance profile name here (like we did when attaching iam role to ec2 launch template) because its not recognised.
             	},
 			"Action": [
-				"s3:PutObject"
+				"s3:PutObject",
+				"s3:PutObjectTagging"
 			],
 
 			"Resource": [
@@ -81,7 +82,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
   lambda_function {
     lambda_function_arn = aws_lambda_function.static_upload_lambda_function.arn
-    events              = ["s3:ObjectCreated:Put"]      # Lambda is triggered when a 'PutObject' event is created
+    events              = ["s3:ObjectCreated:*"]      # Lambda is triggered when any event is created
   }
 
   depends_on = [aws_lambda_permission.allow_bucket]     # Depends on the lambda invoke function (this is defined in the lambda function terraform file). It gives permission to the s3 bucket to invoke lambda

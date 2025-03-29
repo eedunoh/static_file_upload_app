@@ -13,13 +13,14 @@ resource "aws_lambda_function" "static_upload_lambda_function" {
 
 
 
+
 # Create a lambda:InvokeFunction. This is important because S3 needs explicit permission to invoke Lambda.
 # When using the AWS Management Console, AWS automatically adds the required Lambda:InvokeFunction permission behind the scenes. In terraform, we need to explicitly configure it.
 
 resource "aws_lambda_permission" "allow_bucket" {
   statement_id  = "AllowExecutionFromS3Bucket"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.static_upload_lambda_function.arn       # using function arn is best practice and works better than using function name. It ensures that Terraform dynamically links the correct function.
+  function_name = aws_lambda_function.static_upload_lambda_function.function_name    # DON'T use function_arn in the place of function_name 
   principal     = "s3.amazonaws.com"
   source_arn    = aws_s3_bucket.s3_normal_objects.arn     # This is the s3 bucket (normal_object_bucket) allowed to invoke/ trigger lambda
 }

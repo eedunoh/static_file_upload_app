@@ -52,14 +52,15 @@ def upload_file():
         return jsonify({"error": "File and tag are required"}), 400
 
     try:
+        # Use the tag format expected by the Lambda function: 'sensitive=true'
         s3_client.upload_fileobj(
             file,
             S3_BUCKET,
             file.filename,
-            ExtraArgs={"Tagging": f"sensitivity={tag}"},  # Store tag in S3
+            ExtraArgs={"Tagging": f"sensitive={tag}"},  # Update to match Lambda's expected format. Get response app. tag = true or false
         )
-        logger.info(f"File '{file.filename}' uploaded to S3 with tag '{tag}'.")
-        return jsonify({"message": "File uploaded successfully!", "tag": tag})
+        logger.info(f"File '{file.filename}' uploaded to S3 with tag 'sensitive={tag}'.")
+        return jsonify({"message": "File uploaded successfully!"})
     except Exception as e:
         logger.error(f"Error uploading file: {e}")
         return jsonify({"error": str(e)}), 500

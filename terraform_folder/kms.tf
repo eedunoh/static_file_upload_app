@@ -12,3 +12,8 @@ resource "aws_kms_alias" "s3_sensitive_key_alias" {
 output "kms_master_key_id" {
   value = aws_kms_key.s3_sensitive_key.id
 }
+
+
+output "kms_arn" {
+  value = aws_kms_key.s3_sensitive_key.arn
+}

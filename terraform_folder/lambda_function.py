@@ -1,35 +1,9 @@
+
+import json
 import boto3
-import os
 
 # AWS Clients
-s3 = boto3.client('s3')
-
-sensitive_bucket_name = "s3-sensitive-objects-bucket"
-
-# To get an object tag, we use 'get_object_tagging()' function. It's a pre-defined function used to get object tags and has two paraneters; bucket_name and key(object_name). 
-# The response usually comes in this form;
-
-            # {
-            #   "TagSet": [
-            #     {
-            #       "Key": "classification",
-            #       "Value": "sensitive"
-            #     },
-            #     {
-            #       "Key": "department",
-            #       "Value": "finance"
-            #     }
-            #   ]
-            # } 
-
-# Then we extract the value ("sensitive") from the TagSet. We can define a new function to do that
-
-
-def get_object_tags(bucket_name, object_key):
-    response = s3.get_object_tagging(Bucket=bucket_name, Key=object_key)
-    return response["TagSet"]
-
-
+s3_client = boto3.client('s3')
 
 
 # When an object is created, and s3 triggers lambda, below is a sample of a typical s3 notification event repsonse;
@@ -49,59 +23,60 @@ def get_object_tags(bucket_name, object_key):
 
 
 # using the structure above, lambda can check if the event trigger is from s3
-
 def lambda_handler(event, context):
 
-    # event → Describes what triggered the Lambda function. It contains details of the event source, such as an API request, an S3 file upload, a DynamoDB stream update. This is the main input that the function processes.
+ # event → Describes what triggered the Lambda function. It contains details of the event source, such as an API request, an S3 file upload, a DynamoDB stream update. This is the main input that the function processes.
 
-    # context → Provides runtime information about the Lambda execution. It includes metadata like the function’s remaining execution time, allocated memory, request ID, and invocation source. This helps manage execution and logging.
+ # context → Provides runtime information about the Lambda execution. It includes metadata like the function’s remaining execution time, allocated memory, request ID, and invocation source. This helps manage execution and logging.
     
     
-    # lambda checks if there is a record in the event, if the record is a list and the event being triggered is from s3
-    record = event["Records"][0]
+    # lambda checks if there is a record in the event
+    try:
+        if 'Records' not in event:
+            raise ValueError("Invalid event: No Records found")
 
-    if "Records" in event and "s3" in record and "bucket" in record["s3"] and "object" in record["s3"]:
+        for record in event['Records']:
+            bucket_name = record.get('s3', {}).get('bucket', {}).get('name')
+            object_key = record.get('s3', {}).get('object', {}).get('key')
 
-        # lambda extracts necessary parameters
-        record = event["Records"][0]
-        triggered_bucket_name = record["s3"]["bucket"]["name"]     # the bucket that triggered lambda
-        triggered_object = record["s3"]["object"]["key"]           # the object name that caused the trigger
+            if not bucket_name or not object_key:
+                raise ValueError("Invalid event structure")
 
-        
-        # lambda gets object tags using the 'get_object_tags()' function defined earlier
-        tags = get_object_tags(triggered_bucket_name, triggered_object)
+            print(f"Triggered bucket: {bucket_name}, Object: {object_key}")
 
-        
-        # lambda checks if file is tagged sensitve and moves file to sensitive s3 bucket
-        is_sensitive = False
-        for tag in tags:
-            if tag["Key"] == "classification" and tag["Value"] == "sensitive":
-                is_sensitive = True
-                break  # Stop once found
-        
-        
-        if is_sensitive:
+            # Retrieve the latest object tags
+            response = s3_client.get_object_tagging(Bucket=bucket_name, Key=object_key)
+            tags = {tag['Key']: tag['Value'] for tag in response['TagSet']}
 
-            # Copy the object to destionaltion (sensitive) bucket
-            s3.copy_object (                
-                CopySource = {
-                            'Bucket': triggered_bucket_name,
-                            'Key': triggered_object
-                            },
-                Bucket = sensitive_bucket_name, 
-                Key = triggered_object
+            print(f"Object Tags: {tags}")
+
+            # check if the tag is sensitive
+            if tags.get('sensitive') == 'true':
+                print(f"Moving {object_key} to sensitive bucket")
+
+                # if tag is sensitive, get the object (file)
+                obj = s3_client.get_object(Bucket=bucket_name, Key=object_key)
+                object_data = obj['Body'].read()
+
+                # put the object in the s3-sensitive-objects-bucket
+                s3_client.put_object(
+                    Bucket='s3-sensitive-objects-bucket',
+                    Key=object_key,
+                    Body=object_data,
+                    ContentType=obj.get('ContentType', 'application/octet-stream')
                 )
 
-            # Delete sensitive object from source (normal) bucket
-            s3.delete_object(Bucket = triggered_bucket_name, Key = triggered_object)
+                # delete the sensitive file from the normal bucket
+                s3_client.delete_object(Bucket=bucket_name, Key=object_key)
 
-            print(f"Moved {triggered_object} to {sensitive_bucket_name}")
+            else:
+                print(f"File {object_key} is not sensitive. No action taken.")
 
-        else:
-            print(f"File {triggered_object} is not sensitive. No action taken.")
+        return {"status": "Success"}
 
-    return None
-
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return {"status": "Error", "message": str(e)}
 
 
 
