@@ -1,7 +1,7 @@
 resource "aws_autoscaling_group" "static_file_app_asg" {
   name = "static_file_app_auto_scaling"
 
-  vpc_zone_identifier = [aws_subnet.private_subnet_1.id, aws_subnet.private_subnet_2.id]   # This ensures my auto scaling group (ec2) instances are in the private subnets.
+  vpc_zone_identifier = [data.aws_subnets.private_subnets.ids]   # This ensures my auto scaling group (ec2) instances are in the private subnets.
   
 
   desired_capacity   = 1

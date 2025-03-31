@@ -4,7 +4,7 @@ resource "aws_lb" "app_alb" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
 
-  subnets            = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id ]  # Load balancer is placed in the public subnets
+  subnets            = [data.aws_subnets.public_subnets.ids]  # Load balancer is placed in the public subnets
 
   enable_deletion_protection = false
 }
@@ -14,7 +14,7 @@ resource "aws_lb_target_group" "alb_tg" {
   name     = "AlbTargetGroup"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id      # using the vpc_id as defined in the main.tf file
+  vpc_id   = data.aws_vpc.main.id      # using the vpc_id as defined in the main.tf file
 
 
     # Without this, the ALB won’t know if the instances are healthy!
