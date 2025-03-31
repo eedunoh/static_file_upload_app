@@ -4,7 +4,10 @@ resource "aws_lb" "app_alb" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
 
-  subnets            = [data.aws_subnets.public_subnets.ids]  # Load balancer is placed in the public subnets
+  subnets            = flatten([data.aws_subnets.public_subnets.ids])  # Flattening the list of subnet IDs and Load balancer is placed in the public subnets. 
+
+  # The flatten() function is used to "un-nest" the list of subnet IDs and pass a flat list instead of a list containing another list. ALB configuration expect a list of strings, not a list containing another list.
+  
 
   enable_deletion_protection = false
 }

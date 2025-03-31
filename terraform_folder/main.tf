@@ -37,13 +37,14 @@ provider "aws" {
 # Use terraform import if you want Terraform to manage the resource.
 # Use data block if you just need to reference an existing resource without managing it.
 
-
 # AWS is case-sensitive when querying data sources compared to when creating them using aws resources
-# You can use name in tags = {} when creating a VPC → But make sure you use "tag:Name" when querying it.
+# Always check how your data is structured especially tags before using them. Name != name  AND  "map-public-ip-on-launch" != "map_public_ip_on_launch"
+
+
 
 data "aws_vpc" "main"{
   filter {
-    name = "tag:Name"
+    name = "tag:name"
     values = ["static_file_upload_vpc"]      # This is the name of the vpc created earlier
   }
 }
@@ -57,7 +58,7 @@ data "aws_subnets" "public_subnets" {
   }
 
   filter {
-    name   = "map_public_ip_on_launch"      # name of the filter we want to use
+    name   = "map-public-ip-on-launch"      # name of the filter we want to use
     values = ["true"]                       # This is the outcome of the filter we expect. Only public subnets auto-assign public IPs
   }
 }
@@ -71,7 +72,7 @@ data "aws_subnets" "private_subnets" {
   }
 
   filter {
-    name   = "map_public_ip_on_launch"      # name of the filter we want to use
+    name   = "map-public-ip-on-launch"      # name of the filter we want to use
     values = ["false"]                      # This is the outcome of the filter we expect. Private subnets do not auto-assign public IPs
   }
 }

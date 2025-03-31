@@ -1,8 +1,10 @@
 resource "aws_autoscaling_group" "static_file_app_asg" {
   name = "static_file_app_auto_scaling"
 
-  vpc_zone_identifier = [data.aws_subnets.private_subnets.ids]   # This ensures my auto scaling group (ec2) instances are in the private subnets.
+  vpc_zone_identifier = flatten([data.aws_subnets.private_subnets.ids])  # Flattening the list of subnet IDs. This ensures my auto scaling group (ec2) instances are in the private subnets.
   
+  # The flatten() function is used to "un-nest" the list of subnet IDs and pass a flat list instead of a list containing another list. ASG configuration expect a list of strings, not a list containing another list.
+
 
   desired_capacity   = 1
   max_size           = 3
