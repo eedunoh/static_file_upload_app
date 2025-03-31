@@ -27,7 +27,7 @@ resource "aws_launch_template" "static_file_app_lt" {
     user_data = base64encode(file("user_data.sh"))
 
     tags = {
-      Name = "Static_File_App-Server"
+      Name = "Static-File-Upload-App-Server"
     }
 }
 

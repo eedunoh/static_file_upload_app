@@ -26,7 +26,7 @@ provider "aws" {
 
 # In this project, we will provision AWS resources in a VPC with both public and private subnets.
 # Since this project uses a CI/CD pipeline, Jenkins will be deployed alongside the VPC and subnets, which will be created first (if it hasn't been created already).
-# See deployment files here: https://github.com/eedunoh/jenkins_aws_install_for_static_file_upload
+# See Jenkins deployment files here: https://github.com/eedunoh/jenkins_aws_install_for_static_file_upload
 
 # To proceed with this project, you must first create the VPC, subnets, and install Jenkins using the files in the repository above. 
 
