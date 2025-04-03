@@ -1,7 +1,7 @@
 # static_file_upload_app
 This repository contains files needed to deploy a containerized static_file upload app on AWS with automated CI/CD and Iac.
 
-## Architecture Diagram
+## Architecture Design
 
 ![image](https://github.com/user-attachments/assets/93d51908-fe0e-484c-9ecf-7e9c6579882d)
 
