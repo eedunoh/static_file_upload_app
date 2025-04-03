@@ -60,7 +60,7 @@ Carefully plan how to declare and provision AWS resources. Basically, which reso
 
    - [AWS Terraform Security Group Configuration guide](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group)
 
-10. **Application Load Balancer**: Create the application load balancer that will distribute traffic between all EC2 instances in the auto-scaling group. The Application load balancer will be launched in the public subnet of the VPC.
+10. **Application Load Balancer**: Create an application load balancer that will distribute traffic between all EC2 instances in the auto-scaling group. The Application load balancer will be launched in the public subnet of the VPC.
 
     - [AWS Terraform Application Load Balancer Configuration guide](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb)
     - [AWS Terraform Target Group Configuration guide](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group)
@@ -68,7 +68,7 @@ Carefully plan how to declare and provision AWS resources. Basically, which reso
     - We will create the target group of the application load balancer. Note that while creating the target group, we will not select any instance because that will be taken care of by the auto-scaling group.
      
 
-9. **Auto Scaling Group & Launch Template**: Create the auto-scaling group that will scale the number of EC2 instances based on the policy used (for this project, we will use the 'TargetTrackingScaling' policy type with a threshold of 30%). The Auto Scaling group will be launched in the private seubnet of the VPC.
+9. **Auto Scaling Group & Launch Template**: Create an auto-scaling group that will scale the number of EC2 instances based on the policy used (for this project, we will use the 'TargetTrackingScaling' policy type with a threshold of 30%). The Auto Scaling group will be launched in the private subnet of the VPC.
     
     - [AWS Terraform Auto Scaling Group Configuration guide](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group)
     - [AWS Terraform EC2 Launch Template Configuration guide](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template)
